@@ -1,0 +1,51 @@
+create external table painel_covid_temp (
+    regiao string,
+    estado string,
+    municipio string,
+    coduf int,
+    codmun int,
+    codRegiaoSaude int,
+    nomeRegiaoSaude string,
+    data date,
+    semanaEpi int,
+    populacaoTCU2019 int,
+    casosAcumulado int,
+    casosNovos int,
+    obitosAcumulado int,
+    obitosNovos int,
+    Recuperadosnovos int,
+    emAcompanhamentoNovos int,
+    interior_metropolitana int
+)
+row format delimited
+fields terminated by ';'
+location'/user/diego/trabalho-final/data/painel_covid_temp'
+tblproperties("skip.header.line.count"="1");
+
+hdfs dfs -cp /user/diego/trabalho-final/dados/HIST_PAINEL_COVIDBR_2020_Parte1_06jul2021.csv /user/diego/trabalho-final/dados/HIST_PAINEL_COVIDBR_2020_Parte2_06jul2021.csv /user/diego/trabalho-final/dados/HIST_PAINEL_COVIDBR_2021_Parte1_06jul2021.csv /user/diego/trabalho-final/dados/HIST_PAINEL_COVIDBR_2021_Parte2_06jul2021.csv /user/diego/trabalho-final/data/painel_covid_temp
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+
+create table painel_covid (
+    estado string,
+    municipio string,
+    coduf int,
+    codmun int,
+    codRegiaoSaude int,
+    nomeRegiaoSaude string,
+    data date,
+    semanaEpi int,
+    populacaoTCU2019 int,
+    casosAcumulado int,
+    casosNovos int,
+    obitosAcumulado int,
+    obitosNovos int,
+    Recuperadosnovos int,
+    emAcompanhamentoNovos int,
+    interior_metropolitana int
+)
+partitioned by (regiao string);
+
+
+insert overwrite table painel_covid partition(regiao) select estado,municipio,coduf,codmun,codRegiaoSaude,nomeRegiaoSaude,data,semanaEpi,populacaoTCU2019,casosAcumulado,casosNovos,obitosAcumulado,obitosNovos,Recuperadosnovos,emAcompanhamentoNovos,interior_metropolitana,regiao from painel_covid_temp;
